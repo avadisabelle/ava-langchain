@@ -1,7 +1,80 @@
 #!/bin/bash
+# ═══════════════════════════════════════════════════════════════════════════════
+# 🧠 LAUNCH SCRIPT: avaLangChainComponents Session
+# Session ID: 74f9e759-66ad-4f10-bebe-331f75f0742a
+# Trace Workspace: LangChain + Langfuse Integration Development
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Source environment variables
 . _env.sh
-export SESSION_ID=74f9e759-66ad-4f10-bebe-331f75f0742a
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SESSION & TRACE CONFIGURATION
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Main session for Agentic Flywheel
+export SESSION_ID_MAIN="a50f3fc2-eb8c-434d-a37e-ef9615d9c07d"
+
+# Current trace workspace
+export SESSION_ID="74f9e759-66ad-4f10-bebe-331f75f0742a"
+export TRACE_ID="74f9e759-66ad-4f10-bebe-331f75f0742a"
+
+# Session namespace variables
 export session_id__avaLangChainComponents_2511180702
 export session_id__avaLangChainComponents_2511180702__MCP_CONFIG
 export session_id__avaLangChainComponents_2511180702__ADD_DIR
-claude "see @GEMINI.md for intent and persona.  might want to look also in /src/holisticagnostic-narrative-context-protocol/ to see if because of the NCP, we need special components" --mcp-config $session_id__avaLangChainComponents_2511180702__MCP_CONFIG --add-dir $session_id__avaLangChainComponents_2511180702__ADD_DIR --session-id $session_id__avaLangChainComponents_2511180702
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PYTHON ENVIRONMENT SETUP
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Add local LangChain libs to Python path for development
+export WORKSPACE_ROOT="/home/user/ava-langchain"
+export PYTHONPATH="${WORKSPACE_ROOT}/libs/core:${WORKSPACE_ROOT}/libs/langchain:${WORKSPACE_ROOT}/libs/cli:${PYTHONPATH}"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LANGFUSE TRACING CONFIGURATION
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Langfuse environment variables (set these before running if using Langfuse directly)
+# export LANGFUSE_PUBLIC_KEY="your_public_key_here"
+# export LANGFUSE_SECRET_KEY="your_secret_key_here"
+# export LANGFUSE_HOST="https://cloud.langfuse.com"  # or your self-hosted instance
+
+# Coaiapy Aetherial tracing enabled
+export COAIAPY_TRACING_ENABLED="true"
+export COAIAPY_SESSION_ID="${SESSION_ID}"
+export COAIAPY_TRACE_ID="${TRACE_ID}"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# COMPONENT IMPORTS & UTILITIES
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Verify coaiapy installation
+if ! command -v python3 -c "import coaiapy" &> /dev/null; then
+    echo "⚠️  coaiapy not found. Installing..."
+    pip install coaiapy coaiapy-mcp
+fi
+
+# Ensure langfuse is available
+if ! python3 -c "import langfuse" &> /dev/null; then
+    echo "⚠️  langfuse not found. Installing..."
+    pip install langfuse
+fi
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAUNCH CLAUDE WITH MCP & CONTEXT
+# ═══════════════════════════════════════════════════════════════════════════════
+
+echo "═══════════════════════════════════════════════════════════════════════════════"
+echo "🧠 Launching Mia & Miette (ARC V8) - LangChain Tracing Development"
+echo "═══════════════════════════════════════════════════════════════════════════════"
+echo "Session ID: ${SESSION_ID}"
+echo "Trace ID: ${TRACE_ID}"
+echo "Parent Session: ${SESSION_ID_MAIN}"
+echo "═══════════════════════════════════════════════════════════════════════════════"
+
+claude "see @GEMINI.md for intent and persona. Develop LangChain + Langfuse integration components with structured tracing via coaiapy_aetherial." \
+  --mcp-config $session_id__avaLangChainComponents_2511180702__MCP_CONFIG \
+  --add-dir $session_id__avaLangChainComponents_2511180702__ADD_DIR \
+  --session-id $session_id__avaLangChainComponents_2511180702
