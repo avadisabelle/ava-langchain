@@ -163,3 +163,6 @@ node_modules
 
 prof
 virtualenv/
+.settings*
+.mcp*
+.env*
