@@ -11,7 +11,8 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
 from langchain_core.callbacks.base import BaseCallbackHandler
-from langchain_core.outputs import LLMResult
+from langchain_core.messages import BaseMessage
+from langchain_core.outputs import ChatGenerationChunk, LLMResult
 
 try:
     from langfuse import Langfuse
@@ -40,6 +41,8 @@ class CoaiapyLangfuseCallbackHandler(BaseCallbackHandler):
         public_key: Langfuse public key. Defaults to LANGFUSE_PUBLIC_KEY env var.
         secret_key: Langfuse secret key. Defaults to LANGFUSE_SECRET_KEY env var.
         host: Langfuse host URL. Defaults to LANGFUSE_HOST env var.
+        trace_name: Custom name for traces. Defaults to "🧠 LangChain Execution".
+        flush_on_exit: Whether to flush pending traces on handler destruction. Defaults to `True`.
     """
 
     def __init__(
@@ -49,6 +52,8 @@ class CoaiapyLangfuseCallbackHandler(BaseCallbackHandler):
         public_key: Optional[str] = None,
         secret_key: Optional[str] = None,
         host: Optional[str] = None,
+        trace_name: Optional[str] = None,
+        flush_on_exit: bool = True,
         **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
@@ -61,6 +66,8 @@ class CoaiapyLangfuseCallbackHandler(BaseCallbackHandler):
         # Session and trace configuration
         self.session_id = session_id or os.environ.get("COAIAPY_SESSION_ID")
         self.default_trace_id = trace_id or os.environ.get("COAIAPY_TRACE_ID")
+        self.trace_name = trace_name or "🧠 LangChain Execution"
+        self.flush_on_exit = flush_on_exit
 
         # Initialize Langfuse client
         self.langfuse = Langfuse(
@@ -105,7 +112,7 @@ class CoaiapyLangfuseCallbackHandler(BaseCallbackHandler):
             trace = self.langfuse.trace(
                 id=trace_id,
                 session_id=self.session_id,
-                name="🧠 LangChain Execution",
+                name=self.trace_name,
             )
             self.trace_objects[trace_id] = trace
 
@@ -248,6 +255,49 @@ class CoaiapyLangfuseCallbackHandler(BaseCallbackHandler):
     ) -> None:
         """Called when LLM errors."""
         self.on_run_error(error, run_id=run_id, parent_run_id=parent_run_id, tags=tags, **kwargs)
+
+    def on_chat_model_start(
+        self,
+        serialized: Dict[str, Any],
+        messages: List[List[BaseMessage]],
+        *,
+        run_id: uuid.UUID,
+        parent_run_id: Optional[uuid.UUID] = None,
+        tags: Optional[List[str]] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+        **kwargs: Any,
+    ) -> None:
+        """Called when chat model starts."""
+        trace_id = self._get_or_create_trace(run_id, parent_run_id)
+        trace = self.trace_objects[trace_id]
+
+        name = self._add_glyph(
+            metadata.get("ls_model_name") if metadata else None or "ChatModel",
+            "chat"
+        )
+
+        # Serialize messages for input
+        serialized_messages = [
+            [{"role": msg.type, "content": msg.content} for msg in message_list]
+            for message_list in messages
+        ]
+
+        # Create generation observation
+        generation = trace.generation(
+            id=str(run_id),
+            name=name,
+            input=serialized_messages,
+            metadata={
+                "tags": tags or [],
+                "serialized": serialized,
+                "message_count": sum(len(msgs) for msgs in messages),
+                **(metadata or {}),
+            },
+            parent_observation_id=self._get_parent_id(parent_run_id),
+        )
+
+        self.run_to_observation_id[str(run_id)] = str(run_id)
+        self.observation_objects[str(run_id)] = generation
 
     def on_chain_start(
         self,
@@ -435,10 +485,19 @@ class CoaiapyLangfuseCallbackHandler(BaseCallbackHandler):
         """Called when retriever errors."""
         self.on_run_error(error, run_id=run_id, parent_run_id=parent_run_id, tags=tags, **kwargs)
 
+    def flush(self) -> None:
+        """Manually flush pending traces to Langfuse.
+
+        This method can be called to ensure all traces are sent immediately,
+        rather than waiting for automatic flushing.
+        """
+        if hasattr(self, "langfuse"):
+            self.langfuse.flush()
+
     def __del__(self) -> None:
-        """Flush pending traces on handler destruction."""
+        """Flush pending traces on handler destruction if enabled."""
         try:
-            if hasattr(self, "langfuse"):
+            if self.flush_on_exit and hasattr(self, "langfuse"):
                 self.langfuse.flush()
         except Exception:
             pass  # Silently fail on cleanup

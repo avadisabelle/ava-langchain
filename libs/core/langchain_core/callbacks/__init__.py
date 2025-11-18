@@ -18,6 +18,7 @@ if TYPE_CHECKING:
         ToolManagerMixin,
     )
     from langchain_core.callbacks.file import FileCallbackHandler
+    from langchain_core.callbacks.langfuse_handler import CoaiapyLangfuseCallbackHandler
     from langchain_core.callbacks.manager import (
         AsyncCallbackManager,
         AsyncCallbackManagerForChainGroup,
@@ -68,6 +69,7 @@ __all__ = (
     "CallbackManagerMixin",
     "Callbacks",
     "ChainManagerMixin",
+    "CoaiapyLangfuseCallbackHandler",
     "FileCallbackHandler",
     "LLMManagerMixin",
     "ParentRunManager",
@@ -94,6 +96,7 @@ _dynamic_imports = {
     "RetrieverManagerMixin": "base",
     "RunManagerMixin": "base",
     "ToolManagerMixin": "base",
+    "CoaiapyLangfuseCallbackHandler": "langfuse_handler",
     "FileCallbackHandler": "file",
     "AsyncCallbackManager": "manager",
     "AsyncCallbackManagerForChainGroup": "manager",
