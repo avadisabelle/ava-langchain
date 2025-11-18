@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 import uuid
 import warnings
 from collections.abc import Awaitable, Callable, Generator, Iterable, Iterator, Sequence
@@ -21,6 +22,7 @@ from typing import (
 from langsmith.run_helpers import _set_tracing_context, get_tracing_context
 from typing_extensions import TypedDict
 
+from langchain_core.callbacks.langfuse_handler import CoaiapyLangfuseCallbackHandler
 from langchain_core.callbacks.manager import AsyncCallbackManager, CallbackManager
 from langchain_core.runnables.utils import (
     Input,
@@ -471,11 +473,17 @@ def get_callback_manager_for_config(config: RunnableConfig) -> CallbackManager:
     Returns:
         The callback manager.
     """
-    return CallbackManager.configure(
+    manager = CallbackManager.configure(
         inheritable_callbacks=config.get("callbacks"),
         inheritable_tags=config.get("tags"),
         inheritable_metadata=config.get("metadata"),
     )
+
+    if os.environ.get("COAIAPY_TRACING_ENABLED", "false").lower() == "true":
+        coaiapy_handler = CoaiapyLangfuseCallbackHandler()
+        manager.add_handler(coaiapy_handler, inherit=True) # Ensure it's always added
+
+    return manager
 
 
 def get_async_callback_manager_for_config(
@@ -489,11 +497,17 @@ def get_async_callback_manager_for_config(
     Returns:
         The async callback manager.
     """
-    return AsyncCallbackManager.configure(
+    manager = AsyncCallbackManager.configure(
         inheritable_callbacks=config.get("callbacks"),
         inheritable_tags=config.get("tags"),
         inheritable_metadata=config.get("metadata"),
     )
+
+    if os.environ.get("COAIAPY_TRACING_ENABLED", "false").lower() == "true":
+        coaiapy_handler = CoaiapyLangfuseCallbackHandler()
+        manager.add_handler(coaiapy_handler, inherit=True) # Ensure it's always added
+
+    return manager
 
 
 P = ParamSpec("P")
