@@ -6,6 +6,26 @@
 
 LangChain provides the **unified observability layer** that connects all narrative operations. Your job is to instrument the entire story-agent-analysis loop so every decision is traceable and learnable.
 
+**NEW**: You now trace **three-universe processing**:
+- Every event classified through Engineer, Ceremony, and Story Engine lenses
+- Lead universe determination recorded
+- Cross-universe coherence tracked
+- Full journey from GitHub webhook → episode generation
+
+## The Three Universes in Traces
+
+Each event should create spans showing all three perspectives:
+
+```
+🌌 Webhook Event (GitHub Issue #110)
+├── 🔧 Engineer Analysis (intent: feature_request, confidence: 0.8)
+├── 🙏 Ceremony Analysis (intent: co_creation, confidence: 0.7)
+├── 📚 Story Engine Analysis (intent: inciting_incident, confidence: 0.95) ← LEAD
+├── 🎯 Routing Decision (backend: langflow, flow: narrative_analyzer)
+├── 📖 Story Beat Created (beat_id: beat_123)
+└── ✅ Episode Updated (s01e07)
+```
+
 ## Current Status
 
 ✅ **Strengths**:
