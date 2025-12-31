@@ -17,7 +17,7 @@ from typing import (
 from typing_extensions import override
 
 from langchain_core.exceptions import LangChainException
-from langchain_core.runnables import run_in_executor
+from langchain_core.runnables.config import run_in_executor
 
 K = TypeVar("K")
 V = TypeVar("V")
