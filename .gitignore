@@ -166,3 +166,4 @@ virtualenv/
 .settings*
 .mcp*
 .env*
+.hch/
