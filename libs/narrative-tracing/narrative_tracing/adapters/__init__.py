@@ -10,7 +10,7 @@ These adapters enable automatic trace logging when events flow through
 the Narrative Intelligence Stack.
 """
 
-from .langgraph_bridge import LangGraphBridge
+from .langgraph_bridge import LangGraphBridge, AnalysisContext, UniverseResult
 from .miadi_integration import (
     MiadiIntegration,
     CorrelationContext,
@@ -35,6 +35,8 @@ from .storytelling_hooks import (
 __all__ = [
     # LangGraph
     "LangGraphBridge",
+    "AnalysisContext",
+    "UniverseResult",
     # Miadi
     "MiadiIntegration",
     "CorrelationContext",

@@ -108,6 +108,23 @@ class UniverseResult:
         }
 
 
+@dataclass
+class AnalysisContext:
+    """Context object for trace_analysis context manager.
+    
+    Set the result attributes within the context, and they will be
+    logged when the context exits.
+    """
+    event_id: str
+    event_content: str = ""
+    engineer_result: Optional[Dict[str, Any]] = None
+    ceremony_result: Optional[Dict[str, Any]] = None
+    story_engine_result: Optional[Dict[str, Any]] = None
+    lead_universe: str = "engineer"
+    coherence_score: float = 0.0
+    parent_span_id: Optional[str] = None
+
+
 # =============================================================================
 # LANGGRAPH BRIDGE
 # =============================================================================
@@ -318,12 +335,24 @@ class LangGraphBridge:
                 # Call the wrapped function
                 result = func(event, *args, **kwargs)
                 
-                # Log if result looks like an analysis
+                # Log if result looks like an analysis object
                 if hasattr(result, "lead_universe") and hasattr(result, "coherence_score"):
                     self.log_analysis(
                         event_id=event_id,
                         analysis=result,
                         event_content=event.get("content"),
+                    )
+                # Also handle dict results with the expected structure
+                elif isinstance(result, dict) and "lead_universe" in result and "coherence_score" in result:
+                    callback = self.create_three_universe_callback()
+                    callback(
+                        event_id=event_id,
+                        event_content=event.get("content", f"Event: {event_id}"),
+                        engineer_result=result.get("engineer_result", {}),
+                        ceremony_result=result.get("ceremony_result", {}),
+                        story_engine_result=result.get("story_engine_result", {}),
+                        lead_universe=result["lead_universe"],
+                        coherence_score=result["coherence_score"],
                     )
                 
                 return result
@@ -339,36 +368,48 @@ class LangGraphBridge:
     def trace_analysis(
         self,
         event_id: str,
-    ) -> Generator[str, None, None]:
+    ) -> Generator[AnalysisContext, None, None]:
         """
-        Context manager for tracing analysis with explicit result logging.
+        Context manager for tracing analysis with attribute-based result capture.
         
-        Creates a parent span for the analysis. Use log_analysis_result()
-        within the context to log the final result.
+        Set the result attributes on the yielded context object,
+        and they will be logged automatically when the context exits.
         
         Args:
             event_id: Unique identifier for the event
         
         Yields:
-            Parent span_id for nesting child spans
+            AnalysisContext object - set attributes before context exits
         
         Example:
         ```python
-        with bridge.trace_analysis("evt_123") as span_id:
+        with bridge.trace_analysis("evt_123") as ctx:
             result = processor.process(event)
-            bridge.log_analysis_result(result, span_id)
+            ctx.event_content = "Feature request description"
+            ctx.engineer_result = result.engineer.to_dict()
+            ctx.ceremony_result = result.ceremony.to_dict()
+            ctx.story_engine_result = result.story_engine.to_dict()
+            ctx.lead_universe = result.lead_universe.value
+            ctx.coherence_score = result.coherence_score
         ```
         """
-        # Create a parent span for the analysis
-        parent_span_id = self.handler.log_event(
-            event_type=self.handler._metrics.__class__.__module__,  # Placeholder event
-            input_data={"event_id": event_id, "status": "analyzing"},
-            metadata={"bridge": "langgraph"},
-        ) if hasattr(self.handler, "log_event") else None
+        ctx = AnalysisContext(event_id=event_id)
         
         try:
-            yield parent_span_id or event_id
+            yield ctx
         finally:
+            # Use the callback to log the analysis
+            callback = self.create_three_universe_callback()
+            callback(
+                event_id=ctx.event_id,
+                event_content=ctx.event_content or f"Event: {event_id}",
+                engineer_result=ctx.engineer_result or {},
+                ceremony_result=ctx.ceremony_result or {},
+                story_engine_result=ctx.story_engine_result or {},
+                lead_universe=ctx.lead_universe,
+                coherence_score=ctx.coherence_score,
+            )
+            
             if self.auto_flush:
                 self.handler.flush()
     
