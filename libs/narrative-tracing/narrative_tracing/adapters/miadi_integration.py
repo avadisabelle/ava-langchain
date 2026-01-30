@@ -410,6 +410,40 @@ class MiadiIntegration:
             parent_span_id=parent_span_id,
         )
     
+    def log_webhook_routed(
+        self,
+        event_id: str,
+        destination: str,
+        routing_reason: str,
+        parent_span_id: Optional[str] = None,
+    ) -> str:
+        """
+        Log routing decision for a webhook event.
+        
+        Call this when Miadi decides where to route a webhook
+        for further processing.
+        
+        Args:
+            event_id: Same event ID from log_webhook_received
+            destination: Where the event is being routed
+            routing_reason: Why this destination was chosen
+            parent_span_id: Optional parent span for nesting
+        
+        Returns:
+            The span ID of the logged event
+        """
+        return self.handler.log_event(
+            event_type=NarrativeEventType.ROUTING_DECISION,
+            input_data={
+                "event_id": event_id,
+            },
+            output_data={
+                "destination": destination,
+                "routing_reason": routing_reason,
+            },
+            parent_span_id=parent_span_id,
+        )
+    
     # =========================================================================
     # EPISODE TRACKING
     # =========================================================================
