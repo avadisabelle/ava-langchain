@@ -168,13 +168,156 @@ The package defines semantic event types for narrative operations:
 
 ## Integration with Narrative Intelligence Stack
 
-This package is designed to integrate with:
+This package is the **unified observability layer** for the three-project Narrative Intelligence Stack:
 
-1. **LangGraph Narrative Intelligence Toolkit** - Uses `unified_state_bridge.py` types
-2. **ava-langflow Universal Router** - Correlation headers for routing decisions
-3. **ava-Flowise Agent Coordination** - Trace agent flow execution
-4. **Storytelling System** - Trace story generation lifecycle
-5. **Miadi-46 Platform** - Webhook event tracing
+1. **LangChain** (this fork) - Instruments and traces all narrative operations via Langfuse
+2. **LangGraph Narrative Intelligence Toolkit** - Processes events through three universes (Engineer/Ceremony/Story Engine)
+3. **Miadi Platform** - Consumes webhooks and generates episodes
+
+### Three-Universe Bridge Adapters
+
+The package provides specialized adapters for integrating each system:
+
+#### LangGraph Bridge
+
+Bridges the NarrativeTracingHandler to LangGraph's `ThreeUniverseProcessor`:
+
+```python
+from narrative_tracing import NarrativeTracingHandler
+from narrative_tracing.adapters import LangGraphBridge
+
+handler = NarrativeTracingHandler(story_id="story_123")
+bridge = LangGraphBridge(handler)
+
+# Option 1: Callback approach
+callback = bridge.create_three_universe_callback()
+callback(
+    event_id="evt_001",
+    event_content="Feature request: add three-universe processing",
+    engineer_result={"intent": "feature_implementation", "confidence": 0.85},
+    ceremony_result={"intent": "co_creation", "confidence": 0.75},
+    story_engine_result={"intent": "rising_action", "confidence": 0.90},
+    lead_universe="story_engine",
+    coherence_score=0.82
+)
+
+# Option 2: Decorator approach
+@bridge.trace_processor()
+def process_event(event_id: str, content: str):
+    # Your processing logic
+    return {
+        "engineer_result": {...},
+        "ceremony_result": {...},
+        "story_engine_result": {...},
+        "lead_universe": "story_engine",
+        "coherence_score": 0.82
+    }
+
+# Option 3: Context manager
+with bridge.trace_analysis(event_id="evt_001") as ctx:
+    # Your processing logic
+    ctx.result = analysis_result
+```
+
+#### Miadi Integration
+
+Enables cross-system trace correlation via HTTP headers:
+
+```python
+from narrative_tracing.adapters import MiadiIntegration
+
+miadi = MiadiIntegration(handler)
+
+# Log webhook received
+miadi.log_webhook_received(
+    event_id="webhook_001",
+    event_type="github.issue",
+    source="github",
+    repository="org/narrative-intelligence",
+    sender="developer_1"
+)
+
+# Inject correlation headers for outgoing requests
+headers = miadi.inject_correlation_headers({})
+# headers now contains X-Narrative-Trace-Id, X-Story-Id, etc.
+
+# Extract correlation from incoming requests
+context = miadi.extract_correlation(incoming_headers)
+print(context.trace_id, context.story_id)
+
+# Log episode boundaries
+miadi.log_episode_boundary(
+    episode_id="episode_001",
+    beat_count=5,
+    trigger="time_boundary"
+)
+```
+
+#### Storytelling Hooks
+
+Traces beat lifecycle in the Storytelling system:
+
+```python
+from narrative_tracing.adapters import StorytellingHooks
+
+storytelling = StorytellingHooks(handler)
+
+# Context manager for full beat lifecycle
+with storytelling.trace_beat_lifecycle("beat_001") as tracer:
+    tracer.log_content(
+        content="The protagonist discovers...",
+        sequence=1,
+        narrative_function="inciting_incident",
+        act=1
+    )
+    tracer.log_analysis(
+        classification="mystery",
+        confidence=0.92,
+        detected_emotions=["curiosity", "anticipation"]
+    )
+    tracer.log_enrichment(
+        enrichment_type="character_deepening",
+        flows_used=["character_enricher"],
+        quality_before=0.7,
+        quality_after=0.88
+    )
+    tracer.log_lessons([
+        "Trust is established through consistency",
+        "Small moments build larger arcs"
+    ])
+
+# Track character arc updates
+storytelling.log_character_arc_update(
+    character_id="protagonist_01",
+    character_name="Elena",
+    arc_position_before=0.3,
+    arc_position_after=0.45,
+    growth_description="Recognizes own strength"
+)
+
+# Log act transitions
+storytelling.log_act_transition(
+    from_act=1,
+    to_act=2,
+    trigger_beat_id="beat_001"
+)
+```
+
+### End-to-End Example
+
+For a complete example showing all three adapters working together, see:
+`examples/three_system_integration_example.py`
+
+```bash
+cd libs/narrative-tracing
+python examples/three_system_integration_example.py
+```
+
+### Additional Integrations
+
+- **ava-langflow Universal Router** - Correlation headers for routing decisions
+- **ava-Flowise Agent Coordination** - Trace agent flow execution
+- **Storytelling System** - Trace story generation lifecycle
 
 ## Environment Variables
 
