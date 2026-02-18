@@ -127,11 +127,10 @@ class RunnableDirectionalAnalyzer(_make_base_class()):
             dd = DirectionalDecomposer()
             analysis = dd.decompose(prompt)
 
-            segments = analysis.segments
             dir_map: Dict[str, List[str]] = {}
-            for seg in segments:
-                d = seg.direction.value.upper()
-                dir_map.setdefault(d, []).append(seg.text)
+            for direction, insights in analysis.directions.items():
+                name = direction.value.upper()
+                dir_map[name] = [ins.text for ins in insights if ins.text]
 
             # Lead = direction with most segments
             lead = max(dir_map, key=lambda d: len(dir_map[d])) if dir_map else "EAST"
@@ -168,14 +167,17 @@ class RunnableWheelGate(_make_base_class()):
 
             analysis = dd.decompose(prompt)
             enriched = bridge.enrich(analysis)
+            guidance_list = bridge.get_relational_guidance(analysis)
 
             coverage = enriched.relational_coverage
             ceremony = enriched.ceremony_required
-            guidance_list = getattr(enriched, "guidance", [])
 
             # Detect missing directions
-            segments = analysis.segments
-            present = {seg.direction.value.upper() for seg in segments}
+            present = {
+                d.value.upper()
+                for d, insights in analysis.directions.items()
+                if insights  # non-empty list
+            }
             all_dirs = {"EAST", "SOUTH", "WEST", "NORTH"}
             missing = sorted(all_dirs - present)
 
