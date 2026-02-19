@@ -1,0 +1,60 @@
+[project]
+name = "langchain-prompt-decomposition"
+version = "0.1.0"
+description = "Prompt Decomposition Engine primitives for the Narrative Intelligence Stack - Four Directions analysis, intent extraction, dependency mapping, and action stacking grounded in Medicine Wheel epistemology"
+license = "MIT"
+requires-python = ">=3.9"
+authors = [
+    { name = "ava" }
+]
+keywords = [
+    "langchain",
+    "prompt",
+    "decomposition",
+    "pde",
+    "medicine-wheel",
+    "four-directions",
+    "indigenous",
+    "intent",
+    "dependency",
+    "action-stack",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = []
+
+[project.optional-dependencies]
+relational = [
+    "langchain-relational-intelligence>=0.1.0",
+]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+]
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["prompt_decomposition*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true

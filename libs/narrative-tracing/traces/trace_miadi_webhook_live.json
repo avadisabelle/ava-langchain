@@ -1,0 +1,111 @@
+{
+  "trace_type": "miadi_webhook_live",
+  "version": "1.0.0",
+  "generated_at": "2026-01-30T22:59:07.920642+00:00",
+  "ceremony_uuid": "cfa7b236-3bf1-4b9c-aad2-f5729da3d4f8",
+  "claims_proven": [
+    "Claim 1: Webhook Event Ingestion - GitHub webhooks received and logged",
+    "Claim 2: Cross-System Correlation - Trace IDs propagated via HTTP headers",
+    "Claim 5: Episode Boundary Detection - Webhook batches form episodes"
+  ],
+  "story_id": "story_miadi_patent_evidence",
+  "session_id": "session_miadi_webhook_flow",
+  "trace_id": "trace_miadi_webhook_live_001",
+  "integration_stats": {
+    "webhooks_processed": 3,
+    "episodes_created": 1,
+    "downstream_calls": 3
+  },
+  "correlation_headers_used": [
+    "X-Narrative-Trace-Id",
+    "X-Story-Id",
+    "X-Session-Id",
+    "X-Parent-Span-Id",
+    "X-Beat-Id",
+    "X-Episode-Id"
+  ],
+  "webhooks_processed": [
+    {
+      "event_id": "gh_webhook_001",
+      "event_type": "github.issues",
+      "repository": "narrative-intelligence/langchain",
+      "sender": "developer_1",
+      "preview": "Add three-universe tracing to LangGraph..."
+    },
+    {
+      "event_id": "gh_webhook_002",
+      "event_type": "github.pull_request",
+      "repository": "narrative-intelligence/langchain",
+      "sender": "developer_2",
+      "preview": "Implement NarrativeTracingHandler for cross-system..."
+    },
+    {
+      "event_id": "gh_webhook_003",
+      "event_type": "github.push",
+      "repository": "narrative-intelligence/langgraph",
+      "sender": "developer_1",
+      "preview": "feat: add AnalysisCallback protocol to ThreeUniver..."
+    }
+  ],
+  "downstream_calls": [
+    {
+      "webhook_id": "gh_webhook_001",
+      "destination": "langgraph:8080/three-universe",
+      "headers_injected": [
+        "Content-Type",
+        "User-Agent",
+        "X-Narrative-Trace-Id",
+        "X-Story-Id",
+        "X-Session-Id"
+      ],
+      "correlation_headers": {
+        "X-Narrative-Trace-Id": "c3eed7c2-be0c-49d4-97f3-1530f37f10da",
+        "X-Story-Id": "story_miadi_patent_evidence",
+        "X-Session-Id": "session_miadi_webhook_flow"
+      }
+    },
+    {
+      "webhook_id": "gh_webhook_002",
+      "destination": "langgraph:8080/three-universe",
+      "headers_injected": [
+        "Content-Type",
+        "User-Agent",
+        "X-Narrative-Trace-Id",
+        "X-Story-Id",
+        "X-Session-Id"
+      ],
+      "correlation_headers": {
+        "X-Narrative-Trace-Id": "c3eed7c2-be0c-49d4-97f3-1530f37f10da",
+        "X-Story-Id": "story_miadi_patent_evidence",
+        "X-Session-Id": "session_miadi_webhook_flow"
+      }
+    },
+    {
+      "webhook_id": "gh_webhook_003",
+      "destination": "langgraph:8080/three-universe",
+      "headers_injected": [
+        "Content-Type",
+        "User-Agent",
+        "X-Narrative-Trace-Id",
+        "X-Story-Id",
+        "X-Session-Id"
+      ],
+      "correlation_headers": {
+        "X-Narrative-Trace-Id": "c3eed7c2-be0c-49d4-97f3-1530f37f10da",
+        "X-Story-Id": "story_miadi_patent_evidence",
+        "X-Session-Id": "session_miadi_webhook_flow"
+      }
+    }
+  ],
+  "prose_summary": "This trace documents 3 GitHub webhooks processed through the Miadi integration. Each webhook was logged, transformed to agent-friendly format, and routed to the three-universe processor with correlation headers injected (6 headers). The webhooks formed 1 episode(s), proving batch processing and episode boundary detection work correctly. Cross-system trace correlation is achieved via HTTP headers.",
+  "implementation": {
+    "adapter_class": "MiadiIntegration",
+    "handler_class": "NarrativeTracingHandler",
+    "correlation_method": "HTTP header injection",
+    "supported_sources": [
+      "github",
+      "gitlab",
+      "bitbucket"
+    ]
+  }
+}

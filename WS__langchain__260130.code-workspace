@@ -1,0 +1,30 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../langgraph"
+		},
+		{
+			"path": "../../src/storytelling"
+		},
+		{
+			"path": "../../src/mia-code"
+		},
+		{
+			"path": "../../src/Miadi"
+		},
+		{
+			"path": "../../src/mcp-pde"
+		}
+	],
+	"settings": {
+		"jupyter.askForKernelRestart": false,
+		"github.copilot.chat.commitMessageGeneration.instructions": [
+			{
+				"file": ".github/workflows/pr_lint.yml"
+			}
+		]
+	}
+}
